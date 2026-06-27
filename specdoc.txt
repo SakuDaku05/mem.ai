@@ -1,0 +1,590 @@
+================================================================================
+MEMAI — UNIFIED AGENTIC MEMORY FRAMEWORK
+Architecture & Implementation Specification v0.1
+================================================================================
+
+Author: Saket
+Date: 2026-06-26
+Status: Draft — Pre-Implementation
+
+================================================================================
+1. PROJECT VISION
+================================================================================
+
+memai is an open-source, drop-in agentic memory framework that replaces
+fragmented vector/graph memory solutions with a principled, multi-layered
+architecture. It is designed to be:
+
+  - pip install memai  (zero friction)
+  - Better than LIGHT (ICLR 2026 BEAM baseline) on all 10 memory abilities
+  - Interoperable with LangChain, LlamaIndex, AutoGen, Claude Code, Codex, Mem0
+  - Deployable as a REST API or embedded Python SDK
+  - Benchmarked against LoCoMo, LongMemEval, BEAM (128K/500K/1M)
+
+Primary research claim:
+  "By combining utility-scored semantic retrieval, causal event graphs,
+   procedural replay, rule-based staleness detection, and position-aware
+   memory injection (PAMI), memai outperforms LIGHT on all 10 BEAM
+   memory ability categories."
+
+
+================================================================================
+2. COMPETITIVE LANDSCAPE
+================================================================================
+
+| System       | Retrieval | Graph | Staleness | Utility | PAMI | Connectors |
+|--------------|-----------|-------|-----------|---------|------|------------|
+| Mem0         | Vector    | No    | No        | No      | No   | Partial    |
+| Supermemory  | Vector    | No    | No        | No      | No   | Limited    |
+| LIGHT (BEAM) | Episodic+Scratch | No | No   | No      | No   | No         |
+| MemGPT       | Paging    | No    | No        | No      | No   | Partial    |
+| memai        | Hybrid    | YES   | YES       | YES     | YES  | FULL       |
+
+LIGHT weaknesses we directly exploit:
+  - Flat episodic retrieval (no causal graph traversal)
+  - No staleness/contradiction handling (stale facts corrupt scratchpad)
+  - No utility re-ranking (retrieves by similarity only)
+  - No lost-in-the-middle mitigation
+  - No procedural memory for repeated workflows
+  - Zero connector ecosystem
+
+
+================================================================================
+3. SYSTEM ARCHITECTURE
+================================================================================
+
+3.1 LAYERED ARCHITECTURE
+--------------------------
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                        AGENT RUNTIMES                          │
+  │  LangChain | LlamaIndex | AutoGen | Claude Code | Codex | Raw  │
+  └──────────────────────┬──────────────────────────────────────────┘
+                         │ Connectors (drop-in adapters)
+  ┌──────────────────────▼──────────────────────────────────────────┐
+  │                    memai REST API / Python SDK                  │
+  │           FastAPI server  OR  `import memai` direct            │
+  └──────────────────────┬──────────────────────────────────────────┘
+                         │
+  ┌──────────────────────▼──────────────────────────────────────────┐
+  │                    MEMORY ORCHESTRATOR                         │
+  │  Routes add/retrieve/update/forget across all memory layers    │
+  └──┬────────┬──────────┬──────────┬──────────┬───────────────────┘
+     │        │          │          │          │
+  ┌──▼──┐  ┌──▼──┐  ┌───▼──┐  ┌───▼──┐  ┌────▼────┐
+  │Event│  │Sem. │  │Proc. │  │Stale │  │Utility  │
+  │Mem. │  │Mem. │  │Mem.  │  │Detec.│  │Scorer   │
+  │(Kuzu│  │(Chroma│ │(JSON)│  │(Rule)│  │(Composite│
+  │Graph│  │/FAISS)│ │      │  │      │  │ Q-style)│
+  └──────┘  └──────┘  └──────┘  └──────┘  └─────────┘
+                         │
+  ┌──────────────────────▼──────────────────────────────────────────┐
+  │              PAMI — Position-Aware Memory Injection            │
+  │   Decides WHERE in the context window each memory is placed    │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+3.2 MODULE BREAKDOWN
+----------------------
+
+MODULE 1: EventMemory (memai/core/event_memory.py)
+  - Backend: Kuzu embedded graph DB
+  - Nodes: events, entities, facts, sessions
+  - Edges: CAUSES, PRECEDES, CONTRADICTS, UPDATES, REFERENCES
+  - Key operations:
+      add_event(text, timestamp, session_id, metadata)
+      get_causal_chain(event_id, depth=3)
+      find_contradictions(fact)
+      temporal_compress(before=timestamp, keep_ratio=0.3)
+  - Answers BEAM categories: Event Ordering, Temporal Reasoning,
+    Multi-Session Reasoning, Contradiction Resolution
+
+MODULE 2: SemanticMemory (memai/core/semantic_memory.py)
+  - Backend: ChromaDB (default), Qdrant/FAISS (optional via config)
+  - Stores: embeddings of facts, summaries, user preferences
+  - Key operations:
+      add(text, metadata)
+      search(query, k=10, filter=None)
+      delete(memory_id)
+  - Answers BEAM categories: Information Extraction, Preference Following
+
+MODULE 3: ProceduralMemory (memai/core/procedural_memory.py)
+  - Backend: SQLite (structured workflow store)
+  - Stores: named workflows as ordered step sequences
+  - Key operations:
+      save_workflow(name, steps, trigger_pattern)
+      match_workflow(current_context) -> best_match
+      replay_workflow(name, agent_callback)
+  - Answers BEAM categories: Instruction Following
+
+MODULE 4: StalenessDetector (memai/core/staleness_detector.py)
+  - Rule-based (no ML required)
+  - Rules:
+      R1 TIME DECAY: score *= exp(-lambda * age_days)
+            lambda = 0.05 (configurable)
+      R2 CONTRADICTION: if new_fact contradicts stored_fact,
+            mark stored as STALE, confidence = 0
+      R3 SUPERSEDE: explicit "X was updated to Y" pattern
+            marks X as STALE, promotes Y
+      R4 FREQUENCY FLOOR: if memory not accessed in N days
+            and utility_score < threshold, mark DORMANT
+  - Key operations:
+      check(memory) -> StalenessResult(is_stale, reason, confidence)
+      sweep() -> list of stale memory IDs (batch cleanup)
+  - Answers BEAM categories: Knowledge Update, Contradiction Resolution,
+    Abstention (refuse to surface stale/poisoned facts)
+
+MODULE 5: UtilityScorer (memai/core/utility_scorer.py)
+  - Composite Q-style scoring (no RL feedback required in v1)
+  - Formula:
+      U(m, q) = w1*semantic_sim(m, q)
+              + w2*recency_score(m)
+              + w3*usage_frequency(m)
+              + w4*causal_relevance(m, current_event)
+    Default weights: [0.40, 0.25, 0.20, 0.15]
+  - Weights are configurable per deployment
+  - Future v2: thin RL layer for explicit reward signal integration
+  - Key operations:
+      score(memory, query, context) -> float
+      rerank(memories, query, context) -> sorted list
+      update_usage(memory_id)  # called after successful retrieval
+
+MODULE 6: PAMI — Position-Aware Memory Injection
+         (memai/core/pami.py)
+  - Solves the "lost in the middle" problem
+  - Algorithm:
+      1. Score all candidate memories via UtilityScorer
+      2. Sort by utility score descending
+      3. Assign positions:
+           TOP 20% utility    -> inject at START of context
+           BOTTOM 20% utility -> inject at END of context
+           MIDDLE utility     -> summarize, inject compressed
+           BELOW threshold    -> drop entirely
+  - Output: an ordered prompt block ready for insertion
+  - Configurable: context_budget (token count), thresholds
+
+
+================================================================================
+4. DATA MODELS
+================================================================================
+
+4.1 MEMORY ITEM (base)
+------------------------
+{
+  "id": "uuid",
+  "text": "string",
+  "embedding": [float, ...],
+  "memory_type": "event|semantic|procedural",
+  "session_id": "string",
+  "agent_id": "string",
+  "created_at": "iso8601",
+  "last_accessed_at": "iso8601",
+  "access_count": int,
+  "utility_score": float,
+  "staleness": {
+    "is_stale": bool,
+    "reason": "string|null",
+    "confidence": float
+  },
+  "metadata": {}
+}
+
+4.2 EVENT NODE (Kuzu graph)
+-----------------------------
+  Node label: Event
+  Properties: id, text, timestamp, session_id, agent_id, summary
+  Edge labels:
+    CAUSES (source_id, target_id, confidence)
+    PRECEDES (source_id, target_id, delta_seconds)
+    CONTRADICTS (source_id, target_id, contradiction_text)
+    UPDATES (old_id, new_id, field)
+    REFERENCES (event_id, entity_name)
+
+4.3 WORKFLOW (ProceduralMemory)
+--------------------------------
+{
+  "workflow_id": "uuid",
+  "name": "string",
+  "trigger_pattern": "string (regex or embedding)",
+  "steps": [
+    {"step": 1, "action": "string", "expected_output": "string"},
+    ...
+  ],
+  "created_at": "iso8601",
+  "last_used_at": "iso8601",
+  "success_count": int
+}
+
+
+================================================================================
+5. REST API SPECIFICATION
+================================================================================
+
+Base URL: http://localhost:8000/v1
+
+Auth: Bearer token (API key) in header
+      Authorization: Bearer <memai_api_key>
+
+5.1 MEMORY ENDPOINTS
+----------------------
+
+POST   /memory/add
+  Body: { "text": str, "agent_id": str, "session_id": str,
+          "memory_type": "auto|event|semantic|procedural",
+          "metadata": {} }
+  Returns: { "memory_id": str, "type_inferred": str }
+
+POST   /memory/search
+  Body: { "query": str, "agent_id": str, "k": int,
+          "filter": {}, "context_budget": int }
+  Returns: { "memories": [MemoryItem], "pami_context": str }
+
+GET    /memory/{memory_id}
+  Returns: MemoryItem
+
+DELETE /memory/{memory_id}
+  Returns: { "deleted": true }
+
+POST   /memory/forget
+  Body: { "agent_id": str, "older_than_days": int,
+          "staleness_threshold": float }
+  Returns: { "deleted_count": int }
+
+5.2 SESSION ENDPOINTS
+-----------------------
+
+POST   /session/start
+  Body: { "agent_id": str, "metadata": {} }
+  Returns: { "session_id": str }
+
+GET    /session/{session_id}/timeline
+  Returns: ordered list of EventMemory nodes for this session
+
+POST   /session/{session_id}/compress
+  Body: { "keep_ratio": float }
+  Returns: { "compressed_count": int, "summary": str }
+
+5.3 WORKFLOW ENDPOINTS
+------------------------
+
+POST   /workflow/save
+  Body: { "name": str, "steps": [...], "trigger_pattern": str }
+  Returns: { "workflow_id": str }
+
+POST   /workflow/match
+  Body: { "context": str, "agent_id": str }
+  Returns: { "workflow": WorkflowItem | null, "confidence": float }
+
+5.4 ADMIN ENDPOINTS
+--------------------
+
+GET    /health
+GET    /metrics   (Prometheus-compatible)
+POST   /sweep     (run staleness sweep)
+
+
+================================================================================
+6. PYTHON SDK
+================================================================================
+
+Installation:
+  pip install memai
+
+Basic usage:
+  from memai import Memory
+
+  mem = Memory(agent_id="my-agent")             # local embedded mode
+  mem = Memory(agent_id="my-agent",             # REST API mode
+               api_url="http://localhost:8000",
+               api_key="sk-memai-...")
+
+  # Add memory
+  mem.add("User prefers dark mode and uses Python 3.11")
+
+  # Search with PAMI context injection
+  result = mem.search("what does the user prefer?", context_budget=2000)
+  prompt = result.pami_context   # ready to inject into LLM prompt
+
+  # Session management
+  with mem.session() as session:
+      session.add_event("User asked about database indexing")
+      session.add_event("Agent recommended B-tree index")
+      timeline = session.timeline()
+
+  # Workflow memory
+  mem.workflows.save("deploy_flow", steps=[...])
+  match = mem.workflows.match(current_context)
+
+
+================================================================================
+7. CONNECTORS
+================================================================================
+
+7.1 LANGCHAIN
+--------------
+  from memai.connectors.langchain import MemAIMemory
+  from langchain.chains import ConversationChain
+
+  memory = MemAIMemory(agent_id="lc-agent")
+  chain = ConversationChain(llm=llm, memory=memory)
+  # memai drops in as a BaseMemory-compatible object
+
+7.2 LLAMAINDEX
+---------------
+  from memai.connectors.llamaindex import MemAIVectorStore
+  index = VectorStoreIndex.from_documents(docs, vector_store=MemAIVectorStore())
+
+7.3 AUTOGEN
+------------
+  from memai.connectors.autogen import MemAIAgentMemory
+  agent = ConversableAgent("assistant", memory=MemAIAgentMemory())
+
+7.4 CLAUDE CODE (MCP SERVER)
+------------------------------
+  # memai exposes a full MCP server
+  memai serve --mode mcp --port 3000
+  # Add to claude_desktop_config.json:
+  {
+    "mcpServers": {
+      "memai": {
+        "command": "memai",
+        "args": ["serve", "--mode", "mcp"]
+      }
+    }
+  }
+  # Tools exposed: memory_add, memory_search, memory_forget,
+  #                session_timeline, workflow_match
+
+7.5 CODEX / OPENAI FUNCTION CALLING
+--------------------------------------
+  from memai.connectors.openai import get_memai_tools
+  tools = get_memai_tools(agent_id="codex-agent")
+  # Returns OpenAI-compatible function definitions
+  # Works with any OpenAI-compatible API
+
+7.6 MEM0 DROP-IN REPLACEMENT
+------------------------------
+  from memai.connectors.mem0_compat import Memory
+  # Identical to mem0's Memory class API
+  # Existing mem0 users migrate with zero code changes
+
+7.7 GENERIC LLM
+-----------------
+  from memai.connectors.generic import MemAIMiddleware
+  middleware = MemAIMiddleware(agent_id="my-agent")
+  enriched_prompt = middleware.enrich(user_message, system_prompt)
+
+
+================================================================================
+8. BENCHMARK STRATEGY
+================================================================================
+
+8.1 BEAM (Primary)
+-------------------
+  Dataset: HuggingFace — Mohammadta/BEAM (128K, 500K, 1M)
+  Competitor baseline: LIGHT (episodic + working + scratchpad)
+  Our claim: beat LIGHT on all 10 memory ability categories
+
+  10 Ability targets:
+  1.  Abstention              <- StalenessDetector (refuse stale facts)
+  2.  Contradiction Resolution <- EventMemory CONTRADICTS edges
+  3.  Event Ordering          <- EventMemory PRECEDES edges + causal chains
+  4.  Information Extraction  <- SemanticMemory + UtilityScorer
+  5.  Instruction Following   <- ProceduralMemory
+  6.  Knowledge Update        <- StalenessDetector SUPERSEDE rule
+  7.  Multi-Session Reasoning <- EventMemory cross-session graph traversal
+  8.  Preference Following    <- SemanticMemory (user prefs tag)
+  9.  Summarization           <- PAMI compression layer
+  10. Temporal Reasoning      <- EventMemory timestamps + PRECEDES edges
+
+  Evaluation script: memai/benchmarks/beam_eval.py
+  Metrics: accuracy per category, overall, vs LIGHT delta
+
+8.2 LoCoMo
+-----------
+  Dataset: Facebook LoCoMo (long-context multi-session)
+  Script: memai/benchmarks/locomo_eval.py
+
+8.3 LongMemEval
+----------------
+  Dataset: LongMemEval standard split
+  Script: memai/benchmarks/longmemeval_eval.py
+
+8.4 Running Benchmarks
+-----------------------
+  memai benchmark --suite beam --scale 1M --model gpt-4o
+  memai benchmark --suite all --output results/
+
+
+================================================================================
+9. REPOSITORY STRUCTURE
+================================================================================
+
+memai/
+├── memai/
+│   ├── __init__.py               # top-level: from memai import Memory
+│   ├── memory.py                 # Memory orchestrator (main class)
+│   ├── core/
+│   │   ├── event_memory.py       # Kuzu graph-based event store
+│   │   ├── semantic_memory.py    # ChromaDB/FAISS vector store
+│   │   ├── procedural_memory.py  # SQLite workflow store
+│   │   ├── staleness_detector.py # Rule-based staleness rules
+│   │   ├── utility_scorer.py     # Composite Q-style scorer
+│   │   └── pami.py               # Position-aware injection
+│   ├── api/
+│   │   ├── app.py                # FastAPI application
+│   │   ├── routes/               # Modular route files
+│   │   ├── auth.py               # API key + OAuth
+│   │   └── models.py             # Pydantic schemas
+│   ├── connectors/
+│   │   ├── langchain_connector.py
+│   │   ├── llamaindex_connector.py
+│   │   ├── autogen_connector.py
+│   │   ├── openai_connector.py   # Codex / function calling
+│   │   ├── mem0_compat.py        # Drop-in Mem0 replacement
+│   │   ├── mcp_server.py         # Claude Code MCP server
+│   │   └── generic.py
+│   ├── benchmarks/
+│   │   ├── beam_eval.py
+│   │   ├── locomo_eval.py
+│   │   └── longmemeval_eval.py
+│   └── cli.py                    # memai serve / memai benchmark
+├── docs/                         # Landing page + documentation
+│   ├── index.html                # Landing page
+│   ├── assets/
+│   └── docs-site/                # MkDocs or Docusaurus
+├── tests/
+├── examples/
+│   ├── langchain_example.py
+│   ├── autogen_example.py
+│   └── claude_code_example.md
+├── pyproject.toml
+├── README.md
+└── BENCHMARK_RESULTS.md
+
+
+================================================================================
+10. GRAPH DB DECISION — FINAL
+================================================================================
+
+Default: Kuzu (embedded)
+  - pip install kuzu  (already bundled in memai deps)
+  - Zero server, zero config
+  - Cypher-compatible queries
+  - MIT licensed
+  - Best for: local dev, small-medium deployments
+
+Optional: Neo4j (enterprise)
+  - Configured via: Memory(graph_backend="neo4j", neo4j_uri=...)
+  - Best for: enterprise users with existing Neo4j clusters
+  - Community edition supported, enterprise optional
+
+Optional: NetworkX (in-memory only, no persistence)
+  - Memory(graph_backend="networkx")
+  - Best for: testing, ephemeral agents
+
+All three implement the same GraphBackend interface:
+  add_node(), add_edge(), query_cypher(), get_neighbors(), export()
+
+
+================================================================================
+11. STALENESS DETECTOR — RULE DETAILS
+================================================================================
+
+R1: TIME DECAY
+  score_adjusted = base_score * exp(-0.05 * age_days)
+  If score_adjusted < 0.1: mark DORMANT
+
+R2: CONTRADICTION DETECTION
+  Trigger: new fact F_new arrives
+  Check: semantic similarity > 0.85 with existing F_old
+         AND entailment model says they conflict
+         (lightweight: use keyword antonym + negation heuristics)
+  Action: mark F_old as STALE, add CONTRADICTS edge in graph
+  Answers BEAM: Contradiction Resolution, Abstention
+
+R3: SUPERSEDE PATTERN
+  Trigger: text matches patterns like:
+    "X is now Y", "updated to", "changed from X to Y",
+    "no longer", "was replaced by"
+  Action: find F_old by entity match, mark STALE, add UPDATES edge
+  Answers BEAM: Knowledge Update
+
+R4: DORMANT SWEEP
+  Scheduled job (configurable interval)
+  Marks as DORMANT: access_count=0 AND age > threshold_days
+  Does NOT delete — dormant memories can be reactivated
+
+
+================================================================================
+12. LANDING PAGE STRATEGY
+================================================================================
+
+URL: memai.dev (or memai.sh)
+
+Above-the-fold:
+  - Tagline: "Memory that actually works. For any LLM, any agent."
+  - Sub-tagline: "Beats LIGHT on all 10 BEAM memory abilities."
+  - One-liner install: pip install memai
+  - Live interactive demo widget (type a query, see memory retrieval)
+  - CTA: "Get Started" + "View on GitHub"
+
+Sections:
+  1. BENCHMARK NUMBERS — Visual chart vs LIGHT, Mem0, MemGPT
+  2. HOW IT WORKS — Animated architecture diagram
+  3. INTEGRATIONS — Tabbed code blocks for each connector
+  4. FEATURES — 6 cards: EventMemory, SemanticMemory, PAMI,
+                          StalenessDetector, UtilityScorer, ProceduralMemory
+  5. QUICKSTART — Embedded runnable code demo
+  6. COMMUNITY — GitHub stars widget, Discord link
+
+Design: Dark mode, glassmorphism cards, animated gradient hero,
+        benchmark numbers prominently featured, Inter/Outfit font
+
+
+================================================================================
+13. BUILD ORDER (IMPLEMENTATION PHASES)
+================================================================================
+
+PHASE 1 — CORE (Weeks 1-2)
+  [ ] event_memory.py (Kuzu)
+  [ ] semantic_memory.py (ChromaDB)
+  [ ] procedural_memory.py (SQLite)
+  [ ] staleness_detector.py (rules)
+  [ ] utility_scorer.py (composite)
+  [ ] pami.py (position injection)
+  [ ] memory.py (orchestrator)
+  [ ] tests/test_core.py
+
+PHASE 2 — API + SDK (Week 3)
+  [ ] FastAPI app with all routes
+  [ ] Auth (API keys + OAuth)
+  [ ] Python SDK (memai.Memory class)
+  [ ] CLI (memai serve, memai benchmark)
+  [ ] pyproject.toml, pip packaging
+
+PHASE 3 — CONNECTORS (Week 4)
+  [ ] LangChain connector
+  [ ] LlamaIndex connector
+  [ ] AutoGen connector
+  [ ] OpenAI/Codex connector
+  [ ] Mem0 drop-in connector
+  [ ] MCP server (Claude Code)
+  [ ] Generic middleware
+
+PHASE 4 — BENCHMARKS (Week 5)
+  [ ] BEAM eval harness (download from HuggingFace)
+  [ ] Run vs LIGHT baseline
+  [ ] LoCoMo eval
+  [ ] LongMemEval
+  [ ] BENCHMARK_RESULTS.md
+
+PHASE 5 — LANDING + DOCS (Week 6)
+  [ ] Landing page (docs/index.html)
+  [ ] Documentation site
+  [ ] README.md (star-worthy)
+  [ ] GitHub repo polish
+
+================================================================================
+END OF SPEC
+================================================================================
