@@ -11,7 +11,7 @@ export default function App() {
           <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             <a href="#architecture" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Architecture</a>
             <a href="#benchmarks" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Benchmarks</a>
-            <a href="#comparison" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Compare</a>
+            <a href="/docs.html" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Docs</a>
             <a href="https://github.com/SakuDaku05/mem.ai" className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}>GitHub</a>
           </div>
         </div>
@@ -29,7 +29,7 @@ export default function App() {
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
             <a href="https://github.com/SakuDaku05/mem.ai" className="btn btn-primary">Start Building</a>
-            <a href="#comparison" className="btn btn-secondary">Read the Docs</a>
+            <a href="/docs.html" className="btn btn-secondary">Read the Docs</a>
           </div>
         </div>
       </section>
