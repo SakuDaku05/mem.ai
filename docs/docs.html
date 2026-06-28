@@ -90,8 +90,12 @@
       <div class="nav-group">
         <div class="nav-title">// CONNECTORS</div>
         <div class="nav-link" data-target="langchain">LangChain</div>
-        <div class="nav-link" data-target="mcp">Claude Code (MCP)</div>
+        <div class="nav-link" data-target="llamaindex">LlamaIndex</div>
+        <div class="nav-link" data-target="autogen">AutoGen</div>
         <div class="nav-link" data-target="openai">OpenAI Auto-Wrapper</div>
+        <div class="nav-link" data-target="mcp">Claude Code (MCP)</div>
+        <div class="nav-link" data-target="mem0">Mem0 Migration</div>
+        <div class="nav-link" data-target="generic">Generic REST</div>
       </div>
       <div class="nav-group">
         <div class="nav-title">// DEPLOYMENT</div>
@@ -269,6 +273,76 @@ res = client.chat.completions.create(
     user=<span style="color: #A3BE8C">"customer-123"</span> 
 )
 print(res.choices[0].message.content) <span style="color: #666"># "Your order number is #99942."</span></pre>
+        </div>
+      </section>
+
+      <!-- LLAMAINDEX -->
+      <section id="llamaindex" class="doc-section">
+        <div class="breadcrumbs">Docs / Connectors / <span>LlamaIndex</span></div>
+        <h1>LlamaIndex.</h1>
+        <p>Use <strong>mem.ai</strong> as a customized Retriever and VectorStore backend for your LlamaIndex query engines.</p>
+        <div class="code-container">
+          <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">COPY</button></div>
+<pre><span style="color: #FF331F">from</span> memai.connectors.llamaindex <span style="color: #FF331F">import</span> MemaiRetriever
+<span style="color: #FF331F">from</span> llama_index.core.query_engine <span style="color: #FF331F">import</span> RetrieverQueryEngine
+
+retriever = MemaiRetriever(api_key=<span style="color: #A3BE8C">"sk-memai-..."</span>, agent_id=<span style="color: #A3BE8C">"llama-bot"</span>)
+query_engine = RetrieverQueryEngine.from_args(retriever=retriever)
+
+response = query_engine.query(<span style="color: #A3BE8C">"Summarize my previous requests."</span>)</pre>
+        </div>
+      </section>
+
+      <!-- AUTOGEN -->
+      <section id="autogen" class="doc-section">
+        <div class="breadcrumbs">Docs / Connectors / <span>AutoGen</span></div>
+        <h1>AutoGen.</h1>
+        <p>Give your AutoGen conversational agents persistent memory that survives between execution runs.</p>
+        <div class="code-container">
+          <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">COPY</button></div>
+<pre><span style="color: #FF331F">from</span> memai.connectors.autogen <span style="color: #FF331F">import</span> MemaiAgentHook
+<span style="color: #FF331F">import</span> autogen
+
+<span style="color: #666"># Attach the hook to automatically manage agent memory state</span>
+assistant = autogen.AssistantAgent(name=<span style="color: #A3BE8C">"assistant"</span>)
+user_proxy = autogen.UserProxyAgent(name=<span style="color: #A3BE8C">"user_proxy"</span>)
+
+hook = MemaiAgentHook(api_key=<span style="color: #A3BE8C">"sk-memai-..."</span>, agent_id=<span style="color: #A3BE8C">"auto-bot"</span>)
+hook.register(assistant)</pre>
+        </div>
+      </section>
+
+      <!-- MEM0 MIGRATION -->
+      <section id="mem0" class="doc-section">
+        <div class="breadcrumbs">Docs / Connectors / <span>Mem0 Migration</span></div>
+        <h1>Mem0 Migration Wrapper.</h1>
+        <p>Transitioning from Mem0? We provide a 1:1 drop-in replacement wrapper. You don't need to change a single line of your application logic.</p>
+        <div class="code-container">
+          <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">COPY</button></div>
+<pre><span style="color: #666"># Replace your standard Mem0 import</span>
+<span style="color: #666"># from mem0 import Memory</span>
+<span style="color: #FF331F">from</span> memai.connectors.mem0 <span style="color: #FF331F">import</span> Memory
+
+m = Memory()
+m.add(<span style="color: #A3BE8C">"I love Python"</span>, user_id=<span style="color: #A3BE8C">"alice"</span>)
+results = m.search(<span style="color: #A3BE8C">"What do I love?"</span>, user_id=<span style="color: #A3BE8C">"alice"</span>)</pre>
+        </div>
+      </section>
+
+      <!-- GENERIC REST -->
+      <section id="generic" class="doc-section">
+        <div class="breadcrumbs">Docs / Connectors / <span>Generic REST</span></div>
+        <h1>Generic REST Client.</h1>
+        <p>If you are not using Python, you can integrate via our generic REST HTTP interface from any language (Node.js, Go, Rust, etc).</p>
+        <div class="code-container">
+          <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">COPY</button></div>
+<pre>curl -X POST <span style="color: #A3BE8C">"http://localhost:8000/v1/memory/inject"</span> \
+     -H <span style="color: #A3BE8C">"Authorization: Bearer sk-memai-..."</span> \
+     -H <span style="color: #A3BE8C">"Content-Type: application/json"</span> \
+     -d '{
+       "agent_id": "generic-agent",
+       "query": "What is my username?"
+     }'</pre>
         </div>
       </section>
 
