@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  memai:
+    build: .
+    container_name: memai_server
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist the memory databases on the host machine
+      - ./memai_data:/app/memai_data
+    environment:
+      # Uncomment and set this to hardcode your master API key in production, 
+      # otherwise it will auto-generate one in the memai_data volume.
+      # - MEMAI_API_KEY=your_super_secret_production_key
+      - MEMAI_HOST=0.0.0.0
+      - MEMAI_PORT=8000
+    restart: unless-stopped
