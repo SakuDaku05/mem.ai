@@ -4,108 +4,127 @@
   <meta charset="UTF-8">
   <title>memai — Documentation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #FFFFFF; --sidebar: #F8FAFC; --text: #0F172A; --muted: #64748B;
-      --border: #E2E8F0; --accent: #2563EB; --accent-hover: #1D4ED8;
-      --code-bg: #F1F5F9;
+      --bg: #FFFFFF;
+      --sidebar-bg: #F9FAFB;
+      --text-main: #111827;
+      --text-muted: #6B7280;
+      --border: #E5E7EB;
+      --primary: #2563EB;
+      --code-bg: #F3F4F6;
     }
+    
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+    body { background: var(--bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; }
     
     /* Sidebar */
-    aside { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 2rem 1.5rem; overflow-y: auto; flex-shrink: 0; }
-    .logo { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; margin-bottom: 2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
-    .logo span { background: var(--accent); color: white; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; }
+    aside { width: 280px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+    .logo { font-weight: 700; font-size: 1.25rem; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+    .logo span { background: #E0E7FF; color: #4338CA; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.7rem; letter-spacing: 0.05em; font-weight: 700; }
+    
+    .sidebar-nav { padding: 1.5rem; overflow-y: auto; flex: 1; }
     .nav-group { margin-bottom: 2rem; }
-    .nav-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; margin-bottom: 0.75rem; }
-    .nav-link { display: block; color: var(--text); text-decoration: none; font-size: 0.9rem; padding: 0.5rem 0.75rem; border-radius: 6px; font-weight: 500; transition: all 0.2s; cursor: pointer; }
-    .nav-link:hover { background: #E2E8F0; }
-    .nav-link.active { background: #DBEAFE; color: var(--accent); font-weight: 600; }
+    .nav-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700; margin-bottom: 0.75rem; }
+    .nav-link { display: block; color: var(--text-main); text-decoration: none; font-size: 0.9rem; padding: 0.5rem 0.75rem; border-radius: 8px; font-weight: 500; transition: all 0.2s; cursor: pointer; margin-bottom: 0.25rem; }
+    .nav-link:hover { background: #F3F4F6; }
+    .nav-link.active { background: #EFF6FF; color: var(--primary); font-weight: 600; }
     
     /* Main Content */
-    main { flex: 1; overflow-y: auto; padding: 3rem 4rem; scroll-behavior: smooth; position: relative; }
-    .content-wrapper { max-width: 800px; margin: 0 auto; padding-bottom: 6rem; }
-    .breadcrumbs { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center; }
-    .breadcrumbs a { color: var(--accent); text-decoration: none; }
+    main { flex: 1; overflow-y: auto; padding: 4rem; scroll-behavior: smooth; position: relative; background: #fff; }
+    .content-wrapper { max-width: 760px; margin: 0 auto; padding-bottom: 6rem; }
     
-    h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; color: var(--text); }
-    p { font-size: 1.05rem; color: var(--text); line-height: 1.7; margin-bottom: 1.5rem; }
-    h2 { font-size: 1.75rem; font-weight: 700; margin: 3rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; color: var(--text); }
-    h3 { font-size: 1.25rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text); }
+    .breadcrumbs { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; font-weight: 500; }
+    .breadcrumbs span { color: var(--text-main); font-weight: 600; }
+    
+    h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1.25rem; color: var(--text-main); }
+    h2 { font-size: 1.5rem; font-weight: 700; margin: 3rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; color: var(--text-main); }
+    h3 { font-size: 1.25rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text-main); }
+    p { font-size: 1.05rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.5rem; color: var(--text-muted); line-height: 1.7; }
+    li { margin-bottom: 0.5rem; }
     
     /* Code Blocks */
-    .code-container { position: relative; margin-bottom: 2rem; }
-    pre { background: var(--code-bg); padding: 1.5rem; border-radius: 12px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; border: 1px solid var(--border); color: #334155; line-height: 1.6; }
-    code { font-family: 'JetBrains Mono', monospace; }
-    p code { background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.85em; color: var(--accent); border: 1px solid var(--border); }
+    .code-container { position: relative; margin-bottom: 2rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    .code-header { background: #F9FAFB; padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .code-lang { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    pre { background: var(--code-bg); padding: 1.25rem; overflow-x: auto; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #1F2937; line-height: 1.6; margin: 0; }
+    p code, li code { font-family: 'Fira Code', monospace; background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.85em; color: #EF4444; border: 1px solid var(--border); }
     
-    .copy-btn { position: absolute; top: 1rem; right: 1rem; background: #FFF; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: var(--muted); transition: all 0.2s; }
-    .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .copy-btn { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.75rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+    .copy-btn:hover { color: var(--primary); border-color: var(--primary); background: #EFF6FF; }
     
     /* Alerts */
-    .alert { padding: 1rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: flex-start; font-size: 0.95rem; line-height: 1.6; }
-    .alert-info { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E3A8A; }
-    .alert-info::before { content: '💡'; font-size: 1.2rem; }
+    .alert { padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; gap: 1rem; font-size: 0.95rem; line-height: 1.6; align-items: flex-start; }
+    .alert-info { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; }
+    .alert-info::before { content: '💡'; font-size: 1.25rem; }
     
     /* Sections */
-    .doc-section { display: none; animation: fadeIn 0.3s ease; }
+    .doc-section { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
     .doc-section.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
+
   <aside>
-    <a href="index.html" class="logo">🧠 memai <span>DOCS</span></a>
-    <div class="nav-group">
-      <div class="nav-title">Getting Started</div>
-      <div class="nav-link active" data-target="quickstart">Quick Start</div>
-      <div class="nav-link" data-target="cli">CLI Reference</div>
+    <div class="sidebar-header">
+      <a href="index.html" class="logo">🧠 memai <span>DOCS</span></a>
     </div>
-    <div class="nav-group">
-      <div class="nav-title">Core Concepts</div>
-      <div class="nav-link" data-target="pami">PAMI Injection</div>
-      <div class="nav-link" data-target="staleness">Staleness Rules</div>
-    </div>
-    <div class="nav-group">
-      <div class="nav-title">Integrations</div>
-      <div class="nav-link" data-target="langchain">LangChain</div>
-      <div class="nav-link" data-target="mcp">Claude Code (MCP)</div>
+    <div class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-title">Getting Started</div>
+        <div class="nav-link active" data-target="quickstart">Quick Start</div>
+        <div class="nav-link" data-target="cli">CLI Reference</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-title">Core Concepts</div>
+        <div class="nav-link" data-target="pami">PAMI Injection</div>
+        <div class="nav-link" data-target="staleness">Staleness Rules</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-title">Integrations</div>
+        <div class="nav-link" data-target="langchain">LangChain</div>
+        <div class="nav-link" data-target="mcp">Claude Code (MCP)</div>
+        <div class="nav-link" data-target="openai">OpenAI Auto-Wrapper</div>
+      </div>
     </div>
   </aside>
   
   <main>
     <div class="content-wrapper">
+      
       <!-- QUICK START -->
       <section id="quickstart" class="doc-section active">
-        <div class="breadcrumbs"><a href="index.html">Home</a> / Getting Started / Quick Start</div>
+        <div class="breadcrumbs">Docs / Getting Started / <span>Quick Start</span></div>
         <h1>Quick Start</h1>
-        <p>Welcome to <strong>memai</strong>. This guide covers installation, server startup, and your first SDK operations.</p>
+        <p>Welcome to <strong>memai</strong>. This framework provides your LLM agents with semantic, causal, and procedural memory out of the box.</p>
         
         <h2>Installation</h2>
         <p>Install the core framework and optionally all integration dependencies using <code>pip</code>:</p>
         <div class="code-container">
-          <button class="copy-btn">Copy</button>
+          <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Copy</button></div>
 <pre>pip install memai
 # Or to include all connectors:
 pip install "memai[all]"</pre>
         </div>
         
         <div class="alert alert-info">
-          Requires Python 3.10+ and automatically sets up Kuzu and ChromaDB embedded engines.
+          Requires Python 3.10+ and automatically sets up Kuzu (Graph) and ChromaDB (Vector) embedded engines natively.
         </div>
         
         <h2>Basic Usage (Python SDK)</h2>
         <p>You can connect to your local memory server and immediately start injecting context into your LLMs.</p>
         <div class="code-container">
-          <button class="copy-btn">Copy</button>
+          <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Copy</button></div>
 <pre>from memai.sdk import MemaiClient
 
 # Connect to the local server
 mem = MemaiClient(api_key="sk-memai-...", base_url="http://localhost:8000")
 
-# Store memories
+# Store memories scoped to an agent
 mem.add("User prefers concise answers", agent_id="my-agent")
 
 # Search and generate PAMI-optimized context
@@ -115,13 +134,13 @@ context = mem.inject("What does the user prefer?", agent_id="my-agent")</pre>
 
       <!-- CLI -->
       <section id="cli" class="doc-section">
-        <div class="breadcrumbs"><a href="index.html">Home</a> / Getting Started / CLI Reference</div>
+        <div class="breadcrumbs">Docs / Getting Started / <span>CLI Reference</span></div>
         <h1>CLI Reference</h1>
-        <p>The <code>memai</code> CLI allows you to manage your memory server and data from the terminal.</p>
+        <p>The <code>memai</code> CLI allows you to manage your memory server and databases directly from your terminal.</p>
         <h2>Commands</h2>
         <div class="code-container">
-          <button class="copy-btn">Copy</button>
-<pre># Start the REST API server
+          <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Copy</button></div>
+<pre># Start the REST API server (auto-generates master key)
 memai serve
 
 # Add a semantic memory
@@ -137,32 +156,34 @@ memai sweep</pre>
       
       <!-- PAMI -->
       <section id="pami" class="doc-section">
-        <div class="breadcrumbs"><a href="index.html">Home</a> / Core Concepts / PAMI Injection</div>
+        <div class="breadcrumbs">Docs / Core Concepts / <span>PAMI Injection</span></div>
         <h1>Position-Aware Memory Injection</h1>
-        <p>LLMs suffer from the "lost in the middle" phenomenon. PAMI solves this by dynamically partitioning high-utility memories to the very beginning and very end of the injected context window.</p>
+        <p>LLMs suffer from the "lost in the middle" phenomenon—they pay attention to the beginning and end of their prompt, but ignore the middle.</p>
+        <p>PAMI solves this by dynamically partitioning high-utility memories. When you call <code>mem.inject()</code>, the framework calculates a utility score (Q-score) for every relevant fact, and places the absolute highest-scoring facts at the very top and very bottom of the injected text block.</p>
         <div class="alert alert-info">
-          The <code>memai.inject()</code> method automatically applies PAMI based on the configured <code>context_budget</code>.
+          The <code>mem.inject()</code> method automatically applies PAMI based on the configured <code>context_budget</code>. No manual array sorting required.
         </div>
       </section>
 
       <!-- STALENESS -->
       <section id="staleness" class="doc-section">
-        <div class="breadcrumbs"><a href="index.html">Home</a> / Core Concepts / Staleness Rules</div>
+        <div class="breadcrumbs">Docs / Core Concepts / <span>Staleness Rules</span></div>
         <h1>Staleness Rules (R1-R4)</h1>
-        <p>Agent memories decay over time if not accessed or if they are explicitly contradicted.</p>
-        <h3>R1: Time Decay</h3>
-        <p>Memories lose utility exponentially over time unless frequently accessed.</p>
-        <h3>R2: Superseded Facts</h3>
-        <p>When a direct update occurs ("I moved to LA"), the previous fact ("I live in NYC") is flagged as stale.</p>
+        <p>Unlike standard vector databases that blindly accumulate data until they hallucinate, `memai` actively prunes itself.</p>
+        <ul>
+          <li><strong>R1 (Time Decay):</strong> Memories lose utility exponentially over time unless frequently accessed.</li>
+          <li><strong>R2 (Superseded Facts):</strong> When a direct update occurs ("I moved to LA"), the previous contradictory fact ("I live in NYC") is flagged as stale.</li>
+          <li><strong>R3/R4 (Graph Culling):</strong> Orphaned events in the Kuzu graph are vacuumed to save memory.</li>
+        </ul>
       </section>
 
       <!-- LANGCHAIN -->
       <section id="langchain" class="doc-section">
-        <div class="breadcrumbs"><a href="index.html">Home</a> / Integrations / LangChain</div>
+        <div class="breadcrumbs">Docs / Integrations / <span>LangChain</span></div>
         <h1>LangChain Connector</h1>
-        <p>Use <code>MemaiMemory</code> as a drop-in replacement for standard ConversationBufferMemory.</p>
+        <p>Use <code>MemaiMemory</code> as a drop-in replacement for standard <code>ConversationBufferMemory</code>.</p>
         <div class="code-container">
-          <button class="copy-btn">Copy</button>
+          <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Copy</button></div>
 <pre>from memai.connectors.langchain import MemaiMemory
 from langchain.chains import ConversationChain
 
@@ -173,12 +194,12 @@ chain = ConversationChain(llm=llm, memory=memory)</pre>
 
       <!-- MCP -->
       <section id="mcp" class="doc-section">
-        <div class="breadcrumbs"><a href="index.html">Home</a> / Integrations / Claude Code</div>
+        <div class="breadcrumbs">Docs / Integrations / <span>Claude Code</span></div>
         <h1>Claude Code (MCP Server)</h1>
-        <p>memai exposes a Model Context Protocol (MCP) stdio server for native integration with Claude Code.</p>
+        <p>memai exposes a Model Context Protocol (MCP) stdio server for native integration with Anthropic's Claude Code.</p>
         <p>Add the following to <code>~/.config/claude/mcp_servers.json</code>:</p>
         <div class="code-container">
-          <button class="copy-btn">Copy</button>
+          <div class="code-header"><span class="code-lang">JSON</span><button class="copy-btn">Copy</button></div>
 <pre>{
   "memai": {
     "command": "python",
@@ -192,44 +213,90 @@ chain = ConversationChain(llm=llm, memory=memory)</pre>
         </div>
       </section>
 
+      <!-- OPENAI -->
+      <section id="openai" class="doc-section">
+        <div class="breadcrumbs">Docs / Integrations / <span>OpenAI Auto-Wrapper</span></div>
+        <h1>OpenAI Auto-Wrapper</h1>
+        <p>Intercepts the standard OpenAI SDK to inject memory and save outputs completely invisibly.</p>
+        <div class="code-container">
+          <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Copy</button></div>
+<pre>from openai import OpenAI
+from memai.connectors.openai import wrap_openai
+
+client = wrap_openai(OpenAI(), api_key="sk-...")
+
+# Automatically retrieves memory for 'user-1' and saves the response
+res = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "What's my favorite food?"}],
+    user="user-1" 
+)</pre>
+        </div>
+      </section>
+
     </div>
   </main>
 
   <script>
-    // Tab switching logic
-    const links = document.querySelectorAll('.nav-link');
-    const sections = document.querySelectorAll('.doc-section');
-    
-    links.forEach(link => {
-      link.addEventListener('click', () => {
-        // Remove active class from all
+    // Robust Tab Navigation Logic
+    document.addEventListener('DOMContentLoaded', () => {
+      const links = document.querySelectorAll('.nav-link');
+      const sections = document.querySelectorAll('.doc-section');
+      const mainContent = document.querySelector('main');
+      
+      function navigateTo(targetId) {
+        // Deactivate all
         links.forEach(l => l.classList.remove('active'));
         sections.forEach(s => s.classList.remove('active'));
         
-        // Add active class to clicked link and corresponding section
-        link.classList.add('active');
-        const targetId = link.getAttribute('data-target');
-        document.getElementById(targetId).classList.add('active');
+        // Activate target
+        const activeLink = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+        const activeSection = document.getElementById(targetId);
         
-        // Scroll to top of main content
-        document.querySelector('main').scrollTop = 0;
-      });
-    });
+        if(activeLink && activeSection) {
+          activeLink.classList.add('active');
+          activeSection.classList.add('active');
+          mainContent.scrollTop = 0; // Reset scroll
+          window.location.hash = targetId; // Update URL hash for sharing
+        }
+      }
 
-    // Copy to clipboard logic
-    document.querySelectorAll('.copy-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const code = btn.nextElementSibling.innerText;
-        navigator.clipboard.writeText(code).then(() => {
-          const originalText = btn.innerText;
-          btn.innerText = 'Copied!';
-          btn.style.color = 'var(--accent)';
-          btn.style.borderColor = 'var(--accent)';
-          setTimeout(() => {
-            btn.innerText = originalText;
-            btn.style.color = '';
-            btn.style.borderColor = '';
-          }, 2000);
+      // Handle click events
+      links.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          navigateTo(link.getAttribute('data-target'));
+        });
+      });
+
+      // Handle direct URL hashes on load
+      if(window.location.hash) {
+        const hash = window.location.hash.substring(1);
+        if(document.getElementById(hash)) {
+          navigateTo(hash);
+        }
+      }
+
+      // Copy to clipboard logic
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          // Find the <pre> block right after the header
+          const preBlock = btn.parentElement.nextElementSibling;
+          const code = preBlock.innerText;
+          
+          navigator.clipboard.writeText(code).then(() => {
+            const originalText = btn.innerText;
+            btn.innerText = 'Copied!';
+            btn.style.color = '#2563EB';
+            btn.style.borderColor = '#2563EB';
+            btn.style.background = '#EFF6FF';
+            setTimeout(() => {
+              btn.innerText = originalText;
+              btn.style.color = '';
+              btn.style.borderColor = '';
+              btn.style.background = '';
+            }, 2000);
+          });
         });
       });
     });
