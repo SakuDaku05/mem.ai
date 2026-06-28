@@ -81,7 +81,7 @@ export default function App() {
               
               <div style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-                  <span>Information Extraction</span><span style={{ color: var(--accent) }}>92%</span>
+                  <span>Information Extraction</span><span style={{ color: 'var(--accent)' }}>92%</span>
                 </div>
                 <div style={{ height: '4px', background: 'var(--border)', width: '100%' }}>
                   <div style={{ height: '100%', background: 'var(--accent)', width: '92%' }}></div>
@@ -90,7 +90,7 @@ export default function App() {
 
               <div style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-                  <span>Temporal Ordering</span><span style={{ color: var(--accent) }}>88%</span>
+                  <span>Temporal Ordering</span><span style={{ color: 'var(--accent)' }}>88%</span>
                 </div>
                 <div style={{ height: '4px', background: 'var(--border)', width: '100%' }}>
                   <div style={{ height: '100%', background: 'var(--accent)', width: '88%' }}></div>
@@ -99,7 +99,7 @@ export default function App() {
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-                  <span>Conflict Resolution</span><span style={{ color: var(--accent) }}>95%</span>
+                  <span>Conflict Resolution</span><span style={{ color: 'var(--accent)' }}>95%</span>
                 </div>
                 <div style={{ height: '4px', background: 'var(--border)', width: '100%' }}>
                   <div style={{ height: '100%', background: 'var(--accent)', width: '95%' }}></div>
