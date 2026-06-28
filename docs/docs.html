@@ -93,6 +93,10 @@
         <div class="nav-link" data-target="mcp">Claude Code (MCP)</div>
         <div class="nav-link" data-target="openai">OpenAI Auto-Wrapper</div>
       </div>
+      <div class="nav-group">
+        <div class="nav-title">// DEPLOYMENT</div>
+        <div class="nav-link" data-target="docker">Docker & Production</div>
+      </div>
     </div>
   </aside>
   
@@ -234,6 +238,50 @@ res = client.chat.completions.create(
     messages=[{<span style="color: #A3BE8C">"role"</span>: <span style="color: #A3BE8C">"user"</span>, <span style="color: #A3BE8C">"content"</span>: <span style="color: #A3BE8C">"What's my favorite food?"</span>}],
     user=<span style="color: #A3BE8C">"user-1"</span> 
 )</pre>
+        </div>
+      </section>
+
+      <!-- DOCKER -->
+      <section id="docker" class="doc-section">
+        <div class="breadcrumbs">Docs / Deployment / <span>Docker & Production</span></div>
+        <h1>Docker & Production.</h1>
+        <p>Deploying <strong>mem.ai</strong> in a production environment is incredibly simple using our official Docker image. This ensures strict isolation and persistent data volumes for your memory databases.</p>
+        
+        <h2>Docker Compose</h2>
+        <p>The recommended way to run mem.ai in production is using Docker Compose. This automatically handles port forwarding and maps a persistent volume so your memories survive container restarts.</p>
+        
+        <p>Create a <code>docker-compose.yml</code> file:</p>
+        <div class="code-container">
+          <div class="code-header"><span class="code-lang">YAML</span><button class="copy-btn">COPY</button></div>
+<pre>services:
+  memai:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./memai_data:/app/memai_data
+    environment:
+      - MEMAI_HOST=0.0.0.0
+      - MEMAI_PORT=8000
+    restart: unless-stopped</pre>
+        </div>
+
+        <h2>Environment Variables</h2>
+        <p>Configure the container using the following environment variables:</p>
+        <ul>
+          <li><strong>MEMAI_API_KEY:</strong> Set this to securely lock down your instance. If omitted, the server will auto-generate a master key and store it in the data volume.</li>
+          <li><strong>MEMAI_HOST:</strong> Usually set to <code>0.0.0.0</code> for Docker compatibility.</li>
+          <li><strong>MEMAI_DATA_DIR:</strong> Defaults to <code>./memai_data</code>. Change this if you wish to store vector and graph DBs in a custom directory.</li>
+        </ul>
+
+        <h2>Starting the Service</h2>
+        <p>Run the following command to build the image and start the server in the background:</p>
+        <div class="code-container">
+          <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">COPY</button></div>
+<pre>docker-compose up -d --build</pre>
+        </div>
+        <div class="alert alert-info">
+          By default, the server runs on port 8000. It is highly recommended to place mem.ai behind a reverse proxy (like NGINX or Traefik) for SSL termination before exposing it to the public internet.
         </div>
       </section>
 
