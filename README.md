@@ -2,6 +2,7 @@
   <img src="membanner.png" alt="mem.ai Banner" width="100%" style="border-radius: 12px; max-width: 800px; margin-bottom: 1rem;">
   <h1>🧠 mem.ai</h1>
   <p><strong>The memory layer your agents deserve.</strong></p>
+  <p><strong><a href="https://memai.vercel.app/">🌐 Official Website & Documentation</a></strong></p>
   
   <p>
     <a href="https://github.com/SakuDaku05/mem.ai/actions"><img src="https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat-square" alt="Build Status"></a>
