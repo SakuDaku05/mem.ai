@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="membanner.png" alt="mem.ai Banner" width="100%" style="border-radius: 12px; max-width: 800px; margin-bottom: 1rem;">
   <h1>🧠 mem.ai</h1>
   <p><strong>The memory layer your agents deserve.</strong></p>
   
