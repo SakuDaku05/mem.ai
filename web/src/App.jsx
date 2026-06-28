@@ -76,22 +76,54 @@ export default function App() {
               </div>
             </div>
 
-            <div className="bento-cell col-span-4" style={{ backgroundColor: 'var(--ink)', color: 'white' }}>
+            <div className="bento-cell col-span-4" style={{ backgroundColor: 'var(--ink)', color: 'white', position: 'relative', overflow: 'hidden' }}>
               <div style={{ fontSize: '3rem', marginBottom: 'auto', color: 'var(--accent)' }}>01.</div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'white' }}>Semantic Vector Core</h3>
-              <p style={{ color: '#888', fontSize: '0.9rem' }}>Embedded ChromaDB handles hyper-dense retrieval with strict multitenant isolation via agent_id indexing.</p>
+              
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.15, pointerEvents: 'none' }}>
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  {[...Array(6)].map((_, i) => 
+                    [...Array(6)].map((_, j) => (
+                      <circle key={`v-${i}-${j}`} cx={10 + i*20} cy={10 + j*20} r="2" fill="white" />
+                    ))
+                  )}
+                </svg>
+              </div>
+
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'white', position: 'relative', zIndex: 1 }}>Semantic Vector Core</h3>
+              <p style={{ color: '#888', fontSize: '0.9rem', position: 'relative', zIndex: 1 }}>Embedded ChromaDB handles hyper-dense retrieval with strict multitenant isolation via agent_id indexing.</p>
             </div>
 
-            <div className="bento-cell col-span-4">
+            <div className="bento-cell col-span-4" style={{ position: 'relative', overflow: 'hidden' }}>
               <div style={{ fontSize: '3rem', marginBottom: 'auto', color: 'var(--accent)' }}>02.</div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Causal Event Graph</h3>
-              <p style={{ color: 'var(--ink-light)', fontSize: '0.9rem' }}>A Kuzu graph database native to the framework. Maps precisely how events precede and trigger one another across temporal space.</p>
+              
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.1, pointerEvents: 'none' }}>
+                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="var(--ink)" strokeWidth="2">
+                  <circle cx="20" cy="60" r="10" />
+                  <circle cx="60" cy="20" r="10" />
+                  <circle cx="100" cy="80" r="10" />
+                  <line x1="28" y1="52" x2="52" y2="28" />
+                  <line x1="68" y1="32" x2="92" y2="72" />
+                </svg>
+              </div>
+
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', position: 'relative', zIndex: 1 }}>Causal Event Graph</h3>
+              <p style={{ color: 'var(--ink-light)', fontSize: '0.9rem', position: 'relative', zIndex: 1 }}>A Kuzu graph database native to the framework. Maps precisely how events precede and trigger one another across temporal space.</p>
             </div>
 
-            <div className="bento-cell col-span-4">
+            <div className="bento-cell col-span-4" style={{ position: 'relative', overflow: 'hidden' }}>
               <div style={{ fontSize: '3rem', marginBottom: 'auto', color: 'var(--accent)' }}>03.</div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>R1-R4 Auto-Pruning</h3>
-              <p style={{ color: 'var(--ink-light)', fontSize: '0.9rem' }}>Blind accumulation causes hallucination. Built-in algorithms detect staleness, decay old facts, and silently cull contradictions.</p>
+              
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.1, pointerEvents: 'none' }}>
+                <svg width="120" height="120" viewBox="0 0 120 120" fill="none" stroke="var(--ink)" strokeWidth="1">
+                  <rect x="10" y="10" width="100" height="100" />
+                  <rect x="20" y="20" width="80" height="80" strokeDasharray="4 4" />
+                  <rect x="30" y="30" width="60" height="60" strokeDasharray="2 6" />
+                  <line x1="10" y1="10" x2="110" y2="110" />
+                </svg>
+              </div>
+
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', position: 'relative', zIndex: 1 }}>R1-R4 Auto-Pruning</h3>
+              <p style={{ color: 'var(--ink-light)', fontSize: '0.9rem', position: 'relative', zIndex: 1 }}>Blind accumulation causes hallucination. Built-in algorithms detect staleness, decay old facts, and silently cull contradictions.</p>
             </div>
 
             <div className="bento-cell col-span-4" id="metrics">
