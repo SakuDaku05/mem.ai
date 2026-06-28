@@ -97,6 +97,10 @@
         <div class="nav-title">// DEPLOYMENT</div>
         <div class="nav-link" data-target="docker">Docker & Production</div>
       </div>
+      <div class="nav-group">
+        <div class="nav-title">// USE CASES</div>
+        <div class="nav-link" data-target="usecase">Customer Support Agent</div>
+      </div>
     </div>
   </aside>
   
@@ -193,9 +197,17 @@ memai sweep</pre>
           <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">COPY</button></div>
 <pre><span style="color: #FF331F">from</span> memai.connectors.langchain <span style="color: #FF331F">import</span> MemaiMemory
 <span style="color: #FF331F">from</span> langchain.chains <span style="color: #FF331F">import</span> ConversationChain
+<span style="color: #FF331F">from</span> langchain_openai <span style="color: #FF331F">import</span> ChatOpenAI
 
+llm = ChatOpenAI(model=<span style="color: #A3BE8C">"gpt-4o"</span>)
 memory = MemaiMemory(api_key=<span style="color: #A3BE8C">"sk-memai-..."</span>, agent_id=<span style="color: #A3BE8C">"lc-agent"</span>)
-chain = ConversationChain(llm=llm, memory=memory)</pre>
+
+chain = ConversationChain(llm=llm, memory=memory)
+
+<span style="color: #666"># The memory is automatically extracted and injected into the prompt.</span>
+<span style="color: #666"># Any new facts are passed through the Staleness Detector.</span>
+chain.predict(input=<span style="color: #A3BE8C">"Hi, my name is Alex and I'm allergic to peanuts."</span>)
+chain.predict(input=<span style="color: #A3BE8C">"Can you suggest a snack?"</span>) <span style="color: #666"># Will avoid peanuts</span></pre>
         </div>
       </section>
 
@@ -218,6 +230,14 @@ chain = ConversationChain(llm=llm, memory=memory)</pre>
   }
 }</pre>
         </div>
+        <p>Once configured, you can ask Claude Code to recall previous sessions. The MCP server exposes the <code>add_memory</code>, <code>search_memory</code>, and <code>prune_memory</code> tools directly to the Claude runtime.</p>
+        <div class="code-container">
+          <div class="code-header"><span class="code-lang">CLAUDE PROMPT</span><button class="copy-btn">COPY</button></div>
+<pre>> Please remember that my deployment server is Ubuntu 22.04.
+> (Claude uses add_memory)
+> What OS am I using?
+> (Claude uses search_memory and recalls Ubuntu 22.04)</pre>
+        </div>
       </section>
 
       <!-- OPENAI -->
@@ -230,14 +250,25 @@ chain = ConversationChain(llm=llm, memory=memory)</pre>
 <pre><span style="color: #FF331F">from</span> openai <span style="color: #FF331F">import</span> OpenAI
 <span style="color: #FF331F">from</span> memai.connectors.openai <span style="color: #FF331F">import</span> wrap_openai
 
+<span style="color: #666"># Wrap the standard client</span>
 client = wrap_openai(OpenAI(), api_key=<span style="color: #A3BE8C">"sk-..."</span>)
 
-<span style="color: #666"># Automatically retrieves memory for 'user-1' and saves the response</span>
+<span style="color: #666"># Turn 1: Implicit Memory Storage</span>
+client.chat.completions.create(
+    model=<span style="color: #A3BE8C">"gpt-4o"</span>,
+    messages=[{<span style="color: #A3BE8C">"role"</span>: <span style="color: #A3BE8C">"user"</span>, <span style="color: #A3BE8C">"content"</span>: <span style="color: #A3BE8C">"My order number is #99942."</span>}],
+    user=<span style="color: #A3BE8C">"customer-123"</span> 
+)
+
+<span style="color: #666"># Turn 2: PAMI Context Injection</span>
+<span style="color: #666"># mem.ai automatically detects the user ID, queries ChromaDB/Kuzu,</span>
+<span style="color: #666"># and injects the order number into the system prompt invisibly.</span>
 res = client.chat.completions.create(
     model=<span style="color: #A3BE8C">"gpt-4o"</span>,
-    messages=[{<span style="color: #A3BE8C">"role"</span>: <span style="color: #A3BE8C">"user"</span>, <span style="color: #A3BE8C">"content"</span>: <span style="color: #A3BE8C">"What's my favorite food?"</span>}],
-    user=<span style="color: #A3BE8C">"user-1"</span> 
-)</pre>
+    messages=[{<span style="color: #A3BE8C">"role"</span>: <span style="color: #A3BE8C">"user"</span>, <span style="color: #A3BE8C">"content"</span>: <span style="color: #A3BE8C">"What was my order number again?"</span>}],
+    user=<span style="color: #A3BE8C">"customer-123"</span> 
+)
+print(res.choices[0].message.content) <span style="color: #666"># "Your order number is #99942."</span></pre>
         </div>
       </section>
 
@@ -282,6 +313,49 @@ res = client.chat.completions.create(
         </div>
         <div class="alert alert-info">
           By default, the server runs on port 8000. It is highly recommended to place mem.ai behind a reverse proxy (like NGINX or Traefik) for SSL termination before exposing it to the public internet.
+        </div>
+      </section>
+
+      <!-- USE CASE -->
+      <section id="usecase" class="doc-section">
+        <div class="breadcrumbs">Docs / Use Cases / <span>Customer Support Agent</span></div>
+        <h1>Customer Support Agent.</h1>
+        <p>A common failure point of standard RAG in customer support is the inability to track changing states. If a customer says "I want a refund" and later says "Nevermind, I'll take a replacement," a standard vector DB will retrieve both facts, causing the LLM to hallucinate.</p>
+        <p><strong>mem.ai</strong> uses the Kuzu Event Graph and R2 (Superseded Facts) rule to gracefully decay the refund request and prioritize the replacement request.</p>
+        
+        <h2>Full Implementation</h2>
+        <div class="code-container">
+          <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">COPY</button></div>
+<pre><span style="color: #FF331F">from</span> memai.sdk <span style="color: #FF331F">import</span> MemaiClient
+<span style="color: #FF331F">import</span> openai
+
+mem = MemaiClient(api_key=<span style="color: #A3BE8C">"sk-memai-prod"</span>)
+
+<span style="color: #FF331F">def</span> handle_customer_message(user_id: str, message: str) -> str:
+    <span style="color: #666"># 1. Retrieve the optimal context using PAMI</span>
+    context = mem.inject(message, agent_id=user_id)
+    
+    <span style="color: #666"># 2. Construct the prompt with the boundary-injected context</span>
+    system_prompt = f<span style="color: #A3BE8C">"""You are a helpful customer support agent.
+    Use the following memory context to assist the user:
+    {context}"""</span>
+    
+    <span style="color: #666"># 3. Generate response</span>
+    response = openai.chat.completions.create(
+        model=<span style="color: #A3BE8C">"gpt-4o"</span>,
+        messages=[
+            {<span style="color: #A3BE8C">"role"</span>: <span style="color: #A3BE8C">"system"</span>, <span style="color: #A3BE8C">"content"</span>: system_prompt},
+            {<span style="color: #A3BE8C">"role"</span>: <span style="color: #A3BE8C">"user"</span>, <span style="color: #A3BE8C">"content"</span>: message}
+        ]
+    )
+    
+    answer = response.choices[0].message.content
+    
+    <span style="color: #666"># 4. Asynchronously store the conversation in memory</span>
+    <span style="color: #666"># The Staleness Detector runs automatically on insertion</span>
+    mem.add(f<span style="color: #A3BE8C">"User: {message}\nAgent: {answer}"</span>, agent_id=user_id)
+    
+    <span style="color: #FF331F">return</span> answer</pre>
         </div>
       </section>
 
