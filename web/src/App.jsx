@@ -18,15 +18,16 @@ export default function App() {
       <main className="container" style={{ paddingTop: '6rem', paddingBottom: '8rem' }}>
         
         {/* Asymmetrical Hero */}
-        <section style={{ marginBottom: '8rem' }}>
-          <span className="eyebrow">v0.1.0 Architecture</span>
-          <h1 style={{ fontSize: 'clamp(4rem, 8vw, 7rem)', lineHeight: 0.95, marginBottom: '2rem' }}>
-            ENGINEERED<br />
-            FOR ABSOLUTE<br />
-            RECALL.
-          </h1>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem' }}>
-            <p style={{ fontSize: '1.25rem', color: 'var(--ink-light)', maxWidth: '500px' }}>
+        <section style={{ marginBottom: '8rem', display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '2rem', alignItems: 'center' }}>
+          
+          <div style={{ gridColumn: 'span 7' }}>
+            <span className="eyebrow">v0.1.0 Architecture</span>
+            <h1 style={{ fontSize: 'clamp(4rem, 7vw, 7rem)', lineHeight: 0.95, marginBottom: '2rem' }}>
+              ENGINEERED<br />
+              FOR ABSOLUTE<br />
+              RECALL.
+            </h1>
+            <p style={{ fontSize: '1.25rem', color: 'var(--ink-light)', maxWidth: '500px', marginBottom: '2.5rem' }}>
               We abandoned standard vector wrappers. <b>mem.ai</b> is a rigorous hybrid framework merging semantic density, causal graphs, and mathematical injection to cure LLM amnesia.
             </p>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
@@ -34,6 +35,24 @@ export default function App() {
               <a href="/docs.html" className="btn btn-outline">Read Documentation</a>
             </div>
           </div>
+
+          <div style={{ gridColumn: 'span 5', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+            <svg width="100%" height="auto" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ maxWidth: '400px' }}>
+              <g stroke="var(--ink)" strokeWidth="0.5">
+                <rect x="10" y="10" width="180" height="180" />
+                <rect x="30" y="30" width="140" height="140" />
+                <rect x="50" y="50" width="100" height="100" />
+                <rect x="70" y="70" width="60" height="60" />
+                <line x1="10" y1="10" x2="190" y2="190" />
+                <line x1="190" y1="10" x2="10" y2="190" />
+                <line x1="100" y1="10" x2="100" y2="190" />
+                <line x1="10" y1="100" x2="190" y2="100" />
+                <circle cx="100" cy="100" r="40" stroke="var(--accent)" strokeWidth="1" />
+                <circle cx="100" cy="100" r="10" fill="var(--accent)" stroke="none" />
+              </g>
+            </svg>
+          </div>
+          
         </section>
 
         {/* Bento Grid */}
