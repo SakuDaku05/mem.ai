@@ -69,6 +69,7 @@ class MemaiRetriever:
 
         nodes = []
         try:
+            # pyrefly: ignore [missing-import]
             from llama_index.core.schema import TextNode, NodeWithScore
             for mem in result.memories:
                 node = TextNode(

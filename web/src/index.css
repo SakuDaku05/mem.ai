@@ -104,8 +104,45 @@ nav {
 .col-span-6 { grid-column: span 6; }
 .col-span-4 { grid-column: span 4; }
 
+.gh-btn { margin-left: 1rem; }
+
+.main-content {
+  padding-top: 6rem;
+  padding-bottom: 8rem;
+}
+
+.hero-section {
+  margin-bottom: 8rem;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2rem;
+  align-items: center;
+}
+
+.hero-left { grid-column: span 7; }
+.hero-right {
+  grid-column: span 5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
 @media (max-width: 1024px) {
   .bento-cell { grid-column: span 12 !important; }
+  .hero-left, .hero-right { grid-column: span 12 !important; }
+}
+
+@media (max-width: 768px) {
+  nav { flex-direction: column; gap: 1rem; text-align: center; }
+  .nav-links { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+  .gh-btn { margin-left: 0; }
+  .main-content { padding-top: 3rem; padding-bottom: 4rem; }
+  .hero-section { gap: 3rem; margin-bottom: 4rem; }
+  .hero-right { padding: 0; }
+  h1 { font-size: clamp(3rem, 12vw, 4rem) !important; }
+  .bento-cell { padding: 1.5rem; }
+  .art-table { display: block; overflow-x: auto; white-space: nowrap; }
 }
 
 /* Terminal / Code block */

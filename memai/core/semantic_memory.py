@@ -371,11 +371,11 @@ class SemanticMemory:
             ids_list = ids_list[0] if ids_list else []
             docs_list = docs_list[0] if docs_list else []
             metas_list = metas_list[0] if metas_list else []
-            if embs_list:
+            if embs_list is not None:
                 embs_list = embs_list[0]
 
         for i, (mid, doc, meta) in enumerate(zip(ids_list, docs_list, metas_list)):
-            emb = embs_list[i] if embs_list else None
+            emb = embs_list[i] if embs_list is not None else None
             item = MemoryItem(
                 id=mid,
                 text=doc,

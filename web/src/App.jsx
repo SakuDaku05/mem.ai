@@ -11,16 +11,16 @@ export default function App() {
           <a href="#metrics">Metrics</a>
           <a href="#compare">Compare</a>
           <a href="/docs.html">Docs</a>
-          <a href="https://github.com/SakuDaku05/mem.ai" className="btn btn-outline" style={{ marginLeft: '1rem' }}>GitHub</a>
+          <a href="https://github.com/SakuDaku05/mem.ai" className="btn btn-outline gh-btn">GitHub</a>
         </div>
       </nav>
 
-      <main className="container" style={{ paddingTop: '6rem', paddingBottom: '8rem' }}>
+      <main className="container main-content">
         
         {/* Asymmetrical Hero */}
-        <section style={{ marginBottom: '8rem', display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '2rem', alignItems: 'center' }}>
+        <section className="hero-section">
           
-          <div style={{ gridColumn: 'span 7' }}>
+          <div className="hero-left">
             <span className="eyebrow">v0.1.0 Architecture</span>
             <h1 style={{ fontSize: 'clamp(4rem, 7vw, 7rem)', lineHeight: 0.95, marginBottom: '2rem' }}>
               ENGINEERED<br />
@@ -36,7 +36,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ gridColumn: 'span 5', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+          <div className="hero-right">
             <svg width="100%" height="auto" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ maxWidth: '400px' }}>
               <g stroke="var(--ink)" strokeWidth="0.5">
                 <rect x="10" y="10" width="180" height="180" />
